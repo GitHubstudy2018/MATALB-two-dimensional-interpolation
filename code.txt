@@ -1,0 +1,35 @@
+subplot(1,2,1),plot(xm,ym,'*'),title('(a)')%画出每一点的位置
+xlabel('x'),ylabel('y');
+xlabel('经度'),ylabel('纬度');
+L = length(xm);%求x点的数量
+x = min(xm):50:max(xm);%取值
+y = min(ym):50:max(ym);
+m = length(x);
+n = length(y);
+ZI = zeros(n,m);%先让z为一个n*m的零矩阵
+[XI,YI] = meshgrid(x,y);%网格划分x，y
+for i = 1:n%循环
+	for j = 1:m
+		rk2 = (XI(i,j)-xm).^2 + (YI(i,j)-ym).^2;%求任意观测点距离差值节点的欧氏距离
+		for k = 1:L
+		if rk2(k)==0%如果观测点就在插值节点上
+			flag = k;%观测点的值就等于插值节点的值
+		else 
+			flag = 0;%否则flag = 0
+			end
+		end
+	if(flag>0)%如果flag≠0，即观测点就在插值节点上
+		ZI(i,j) = Z (flag);%观测点的值就等于插值节点的值
+	else%否则
+		weight = sum(1./rk2);%计算影响的权值
+		ZI(i,j) = sum((1./rk2).*Z)/weight;反距离加权平均
+		end
+	end
+end
+subplot(1,2,2),contour(XI,YI,ZI),title('(b)')%画出结果图像
+subplot(1,4,3),surf(XI,YI,ZI),title('(c)')%画出surf黑白图像
+subplot(1,4,4),mesh(XI,YI,ZI),title('(d)')%画出mesh彩色图像
+
+KI = griddata(xm,ym,Z,XI,YI,'v4');%v4代表第四种方法Delanay方法
+subplot(1,2,1),,mesh(XI,YI,ZI),title('(a)')%用反距离加权平均法为图a
+subplot(1,2,2),,mesh(XI,YI,KI),title('(b)')%用Delanay方法为图b
